@@ -1,0 +1,88 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+clear
+REGION=us-central1
+
+# Globals has a lot of helpful functions around display. 
+source globals
+
+print_title "BASICLB INSTALL" "This process will create an app that does a thing." "5"
+
+BASENAME=basiclb
+get_project_id PROJECT
+ZONE=us-central1-a
+SIZE=3
+
+# Collect parameters here. Each of these allows a default, and a value to be
+# set via command line invocation. Makes it much easy to troubleshoot this.
+collectParamters PROJECT "$1" "the id of the Google Cloud Project" "$PROJECT" 
+collectParamters ZONE "$2" "the geographical zone for the VMs" "$ZONE" 
+collectParamters SIZE "$3" "the number of VMs for this install" "$SIZE" 
+
+gcloud config set project ${PROJECT}
+
+
+# All of these require the project id to be set. 
+get_project_number  PROJECTNUMBER $PROJECT
+get_build_serviceaccount SABUILD $PROJECTNUMBER
+get_compute_serviceaccount SACOMPUTE $PROJECTNUMBER
+
+# This is mostly for debugging, but I think it gives a nice user experience. 
+printf "${BCYAN}Project Details${NC} \n"
+printf "Project ID:         $PROJECT \n"
+printf "Project Number:     $PROJECTNUMBER \n"
+
+
+section_open "Enabling services in your GCP project"
+    gcloud services enable compute.googleapis.com 
+section_close
+
+section_open "Create Instance Template"
+    gcloud compute instance-templates create $BASENAME-template \
+    --boot-disk-size=250GB
+section_close
+
+section_open "Create Managed Instance Group"
+    gcloud compute instance-groups managed create $BASENAME-mig \
+    --size $SIZE --template $BASENAME-template --zone $ZONE
+section_close
+
+
+
+# Do a thing. 
+# Setup a Storage bucket or a load balancer
+
+
+# Setup permissions here. These are pretty common permissions to set. 
+section_open "Setting permissions"
+
+# printf "Enabling Cloud Build Service Account to deploy to Cloud Run on $PROJECT \n"
+# gcloud projects add-iam-policy-binding $PROJECT \
+# 	--member serviceAccount:$SABUILD \
+# 	--role roles/run.developer --no-user-output-enabled
+# printf "Enabling Cloud Build Service Account to perform Service Account activities \n"
+# gcloud projects add-iam-policy-binding $PROJECT \
+#   	--member serviceAccount:$SABUILD \
+#   	--role roles/iam.serviceAccountUser --no-user-output-enabled
+
+section_close
+
+
+
+# Give a success message. If you are spinning up something that is available at 
+# a url, make sure you print that url - ESPECIALLY if it is dynamically created 
+printf "$DIVIDER"
+printf "CONGRATS!!!!!!! \n"
+printf "You have configured a project, spun up architecture and deployed code.\n"
+printf "$DIVIDER"	

@@ -1,0 +1,55 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+clear
+REGION=us-central1
+
+source globals
+
+print_title "BASICLB UNINSTALL" "This process will create a image thumbnail app including all infrastructure." "1"
+
+
+
+BASENAME=basiclb
+get_project_id PROJECT
+ZONE=us-central1-a
+SIZE=3
+
+# These usually match what you did in install, but sometimes, you don't need to 
+# match. I usually go for as little user input as needed. 
+collectParamters PROJECT "$1" "the id of the Google Cloud Project" "$PROJECT" 
+collectParamters ZONE "$2" "the geographical zone for the VMs" "$ZONE" 
+
+
+gcloud config set project ${PROJECT}
+# All of these require the project id to be set. 
+get_project_number  PROJECTNUMBER $PROJECT
+
+printf "${BCYAN}Project Details${NC} \n"
+printf "Project ID:         $PROJECT \n"
+printf "Project Number:     $PROJECTNUMBER \n"
+
+section_open "Delete Managed Instance Group"
+    gcloud compute instance-groups managed delete $BASENAME-mig --zone $ZONE -q
+section_close
+
+section_open "Create Instance Template"
+    gcloud compute instance-templates delete $BASENAME-template -q
+section_close
+
+
+# Let them know that it worked. 
+printf "$DIVIDER"
+printf "CONGRATS!!!!!!! \n"
+printf "Everything is all cleaned up.\n"
+printf "$DIVIDER"	

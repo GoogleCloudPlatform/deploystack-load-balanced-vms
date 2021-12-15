@@ -1,0 +1,8 @@
+# I think it's a good idea to test your scripts. It's kinda awkward but you'll 
+# be happy you did 
+
+./install testprojecttouse
+
+# Check on things
+
+./uninstall testprojecttouse
