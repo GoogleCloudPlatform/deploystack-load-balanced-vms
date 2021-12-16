@@ -1,8 +1,86 @@
 # I think it's a good idea to test your scripts. It's kinda awkward but you'll 
 # be happy you did 
 
-./install testprojecttouse
+
+source globals
+get_project_id PROJECT
+ZONE=us-central1-a
+BASENAME=basiclb
+SIZE=3
+
+gcloud config set project ${PROJECT}
+
+./install $PROJECT $ZONE $SIZE
+
+
+
+section_open "Test Managed Instance Group"
+    evalTest 'gcloud compute instance-groups managed describe $BASENAME-mig --zone $ZONE --format="value(name)"'  $BASENAME-mig
+
+    COUNT=$(gcloud compute instances list --format="value(name)" | wc -l | xargs)
+
+    if [ $COUNT -ne $SIZE ]
+    then
+        printf "Halting - error: expected $SIZE instances of GCE got $COUNT  \n"
+        exit 1
+    else
+         printf "number of GCE instances is ok \n"
+    fi
+
+section_close
+
+section_open "Test Instance Template"
+    evalTest 'gcloud compute instance-templates describe $BASENAME-template --format="value(name)"'  $BASENAME-template
+section_close
+
+section_open "Test Disk Image"
+   evalTest ' gcloud compute images describe $BASENAME-latest --format="value(name)"'  $BASENAME-latest
+section_close
+
+section_open "Test Load Balancer parts exist"
+    evalTest 'gcloud compute forwarding-rules describe  $BASENAME-http-lb-forwarding-rule --global --format="value(name)"'  $BASENAME-http-lb-forwarding-rule
+    evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-proxy  --global --format="value(name)"' $BASENAME-lb-proxy 
+    evalTest 'gcloud compute url-maps describe $BASENAME-lb --global --format="value(name)"' $BASENAME-lb
+    evalTest 'gcloud compute backend-services describe $BASENAME-service --global --format="value(name)"'  $BASENAME-service
+section_close
+
+section_open "Test the IP Address exists"
+    evalTest 'gcloud compute addresses describe $BASENAME-ip --global --format="value(name)"'  $BASENAME-ip
+section_close
+
+
+
 
 # Check on things
 
-./uninstall testprojecttouse
+./uninstall $PROJECT $ZONE
+
+
+
+section_open "Test Managed Instance Group doesn't exist"
+    evalTest 'gcloud compute instance-groups managed describe $BASENAME-mig --zone $ZONE --format="value(name)"'  "EXPECTERROR"
+section_close
+
+section_open "Test Instance Template doesn't exist"
+    evalTest 'gcloud compute instance-templates describe $BASENAME-template --format="value(name)"'  "EXPECTERROR"
+section_close
+
+section_open "Test Disk Image doesn't exist"
+   evalTest 'gcloud compute images describe $BASENAME-latest --format="value(name)"'  "EXPECTERROR"
+section_close
+
+section_open "Test Load Balancer parts dont exist"
+    evalTest 'gcloud compute forwarding-rules describe  $BASENAME-http-lb-forwarding-rule --global --format="value(name)"'  "EXPECTERROR"
+    evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-proxy  --global --format="value(name)"' "EXPECTERROR"
+    evalTest 'gcloud compute url-maps describe $BASENAME-lb --global --format="value(name)"' "EXPECTERROR"
+    evalTest 'gcloud compute backend-services describe $BASENAME-service --global --format="value(name)"'  "EXPECTERROR"
+section_close
+
+section_open "Test the IP Address doesnt exists"
+    evalTest 'gcloud compute addresses describe $BASENAME-ip --global --format="value(name)"'  "EXPECTERROR"
+section_close
+
+printf "$DIVIDER"
+printf "CONGRATS!!!!!!! \n"
+printf "You got the end the of your test with everything working. \n"
+printf "$DIVIDER"
