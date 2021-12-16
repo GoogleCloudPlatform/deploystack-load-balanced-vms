@@ -39,12 +39,28 @@ printf "${BCYAN}Project Details${NC} \n"
 printf "Project ID:         $PROJECT \n"
 printf "Project Number:     $PROJECTNUMBER \n"
 
+section_open "Deleting Load Balancer"
+    gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q
+    gcloud compute target-http-proxies delete $BASENAME-lb-proxy -q
+    gcloud compute url-maps delete $BASENAME-lb -q
+    gcloud compute backend-services delete $BASENAME-service --global -q
+    gcloud compute health-checks delete $BASENAME-health-chk -q
+section_close
+
+section_open "Delete the IP Address"
+    gcloud compute addresses delete $BASENAME-ip -q --global
+section_close
+
 section_open "Delete Managed Instance Group"
     gcloud compute instance-groups managed delete $BASENAME-mig --zone $ZONE -q
 section_close
 
-section_open "Create Instance Template"
+section_open "Delete Instance Template"
     gcloud compute instance-templates delete $BASENAME-template -q
+section_close
+
+section_open "Delete Disk Image"
+    gcloud compute images delete $BASENAME-latest -q
 section_close
 
 
