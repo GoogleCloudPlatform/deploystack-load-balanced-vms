@@ -2,11 +2,11 @@
 
 This is a simple VM + Load balancer solution.  It spins up a Managed Instance
 Group of Compute Engine VMs fronted by a Google Cloud Load Balancer. It only 
-does http but could be combined with the solution in AppInABox - YesOrNoSite
+does http but could be combined with the solution in [AppInABox - YesOrNoSite](https://github.com/GoogleCloudPlatform/appinabox_yesornosite)
 to make a complete http(s) solution complete with a domain. 
 
 
-![APPNAME architecture](/architecture.png)
+![BasicLB architecture](/architecture.png)
 
 ## Install
 You can install this application using the `Open in Google Cloud Shell` button 
@@ -17,12 +17,12 @@ below.
 </a>
 
 Once this opens up, you can install by: 
-1. Creating a Google Cloud Project
-1. Then typing `./install`
+1. Create a Google Cloud Project
+1. Type `./install`
 
 ## Cleanup 
 To remove all billing components from the project
-1. Typing `./uninstall`
+1. Type `./uninstall`
 
 
 This is not an official Google product.
