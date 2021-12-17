@@ -56,10 +56,10 @@ section_open "Create Instance Exemplar to base Managed VMs on"
     --no-boot-disk-auto-delete --boot-disk-type "pd-standard" \
     --boot-disk-device-name "$BASENAME-exemplar"  --tags "http-server"
     # Shhhhh VM's are cranky when then wake
-    gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo apt-get update -y"
+    gcloud compute ssh root@$BASENAME-exemplar --zone $ZONE --command="sudo apt-get update -y"
     printf "${BCYAN}Don't worry about this error. It seems like it's necessary${NC} \n"
-    gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo apt-get update -y"
-    gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo apt-get install nginx -y"
+    gcloud compute ssh root@$BASENAME-exemplar --zone $ZONE --command="sudo apt-get update -y"
+    gcloud compute ssh root@$BASENAME-exemplar --zone $ZONE --command="sudo apt-get install nginx -y"
  section_close
 
 
