@@ -56,10 +56,15 @@ section_open "Create Instance Exemplar to base Managed VMs on"
     --no-boot-disk-auto-delete --boot-disk-type "pd-standard" \
     --boot-disk-device-name "$BASENAME-exemplar"  --tags "http-server"
     # Shhhhh VM's are cranky when then wake
-    gcloud compute ssh root@$BASENAME-exemplar --zone $ZONE --command="sudo apt-get update -y"
+    gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo apt-get update -y"
     printf "${BCYAN}Don't worry about this error. It seems like it's necessary${NC} \n"
-    gcloud compute ssh root@$BASENAME-exemplar --zone $ZONE --command="sudo apt-get update -y"
-    gcloud compute ssh root@$BASENAME-exemplar --zone $ZONE --command="sudo apt-get install nginx -y"
+    gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo apt-get update -y"
+    gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo apt-get install nginx -y"
+    gcloud compute scp code/index.html  $BASENAME-exemplar:~/ --zone=$ZONE
+    gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo mv index.html /var/www/html/index.html"
+    gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo chgrp root /var/www/html/index.html"
+    gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo chown root /var/www/html/index.html"
+    gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo chmod +r /var/www/html/index.html"
  section_close
 
 
@@ -75,21 +80,20 @@ section_open "Create Disk Image for Instance Template"
 section_open "Create Instance Template"
     gcloud compute instance-templates create $BASENAME-template \
     --create-disk=image=$BASENAME-latest,image-project=$PROJECT,size=200GB \
-    --tags "http-server"
+    --tags "http-server" --metadata-from-file=startup-script=startup.sh
 section_close
 
 section_open "Create Managed Instance Group"
     gcloud compute instance-groups managed create $BASENAME-mig \
     --size $SIZE --template $BASENAME-template --zone $ZONE
-section_close
 
-gcloud compute instance-groups set-named-ports $BASENAME-mig \
+    gcloud compute instance-groups set-named-ports $BASENAME-mig \
     --named-ports http:80 \
     --zone $ZONE
-
+section_close
 
 section_open "Creating External IP"
-gcloud compute addresses create $BASENAME-ip \
+    gcloud compute addresses create $BASENAME-ip \
 	--network-tier=PREMIUM --ip-version=IPV4 --global
 section_close
 
@@ -97,6 +101,11 @@ section_open "Standing up Load Balancer"
 
     gcloud compute health-checks create tcp $BASENAME-health-chk \
     --port 80
+
+    gcloud compute firewall-rules create allow-health-check \
+        --allow tcp:80 \
+        --source-ranges 130.211.0.0/22,35.191.0.0/16 \
+        --network default
 
      gcloud compute backend-services create $BASENAME-service \
         --load-balancing-scheme=EXTERNAL \
@@ -122,21 +131,6 @@ section_open "Enabling HTTP"
     --ports=80
 section_close
 
-section_open "Put customized HTML on each node"
-    LIST=$(gcloud compute instances list --format="value(name)" | grep $BASENAME-mig)
-
-    for val in $LIST; do
-        cp code/index.html code/index2.html
-        sed -i "" "s/{{NODENAME}}/$val/" code/index2.html
-        gcloud compute scp code/index2.html  $val:~/ --zone=$ZONE
-        gcloud compute scp code/index2.html  $val:~/ --zone=$ZONE
-        gcloud compute ssh $val --zone $ZONE --command="sudo mv ~/index2.html /var/www/html/index.html"
-        gcloud compute ssh $val --zone $ZONE --command="sudo chgrp root /var/www/html/index.html"
-        gcloud compute ssh $val --zone $ZONE --command="sudo chown root /var/www/html/index.html"
-        gcloud compute ssh $val --zone $ZONE --command="sudo chmod +r /var/www/html/index.html"
-        rm code/index2.html
-    done
- section_close    
 
 
 IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(address)")

@@ -45,6 +45,7 @@ section_open "Deleting Load Balancer"
     gcloud compute url-maps delete $BASENAME-lb -q
     gcloud compute backend-services delete $BASENAME-service --global -q
     gcloud compute health-checks delete $BASENAME-health-chk -q
+    gcloud compute firewall-rules delete allow-health-check -q
 section_close
 
 section_open "Delete the IP Address"

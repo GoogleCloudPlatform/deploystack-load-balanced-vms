@@ -13,6 +13,11 @@
 # limitations under the License.
 
 steps:
-   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-     entrypoint: bash
-     args: [ './test' ]
+- name: gcr.io/$PROJECT_ID/remote-builder
+  env:
+    - COMMAND=cd workspace && ./test
+    - ZONE=$_ZONE
+    - INSTANCE_ARGS=--scopes=https://www.googleapis.com/auth/compute,https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/servicecontrol
+    - RETRIES=20
+substitutions:
+  _ZONE: us-central1-a
