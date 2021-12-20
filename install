@@ -17,7 +17,7 @@ REGION=us-central1
 # Globals has a lot of helpful functions around display. 
 source globals
 
-print_title "BASICLB INSTALL" "This process will create an app that does a thing." "5"
+print_title "BASICLB INSTALL" "This process will create an Instance Template, a Managed Instance Group, and Load Balancer to serve it" "5"
 
 BASENAME=basiclb
 get_project_id PROJECT
@@ -28,7 +28,7 @@ SIZE=3
 # set via command line invocation. Makes it much easy to troubleshoot this.
 collectParamters PROJECT "$1" "the id of the Google Cloud Project" "$PROJECT" 
 collectParamters ZONE "$2" "the geographical zone for the VMs" "$ZONE" 
-collectParamters SIZE "$3" "the number of VMs for this install" "$SIZE" 
+collectParamters SIZE "$3" "the number of VMs to populate the Managed Instance Group" "$SIZE" 
 
 gcloud config set project ${PROJECT}
 
@@ -55,7 +55,8 @@ section_open "Create Instance Exemplar to base Managed VMs on"
     --image-project "debian-cloud" --image-family "debian-10" --boot-disk-size "200" \
     --no-boot-disk-auto-delete --boot-disk-type "pd-standard" \
     --boot-disk-device-name "$BASENAME-exemplar"  --tags "http-server"
-    # Shhhhh VM's are cranky when then wake
+    # Shhhhh VM's are cranky when then wake - this always errors the first time 
+    # an ssh command is sent, so WE GONNA DO IT AGAIN 
     gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo apt-get update -y"
     printf "${BCYAN}Don't worry about this error. It seems like it's necessary${NC} \n"
     gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo apt-get update -y"
