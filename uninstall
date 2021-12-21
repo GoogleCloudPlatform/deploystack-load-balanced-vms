@@ -16,7 +16,7 @@ REGION=us-central1
 
 source globals
 
-print_title "BASICLB UNINSTALL" "This process will create a image thumbnail app including all infrastructure." "1"
+print_title "BASICLB UNINSTALL" "This process will delete all of the infrastructure you created with basiclb." "1"
 
 
 

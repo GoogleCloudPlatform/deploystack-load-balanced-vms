@@ -49,7 +49,7 @@ section_open "Enabling services in your GCP project"
 section_close
 
 
-section_open "Create Instance Exemplar to base Managed VMs on"
+section_open "Create Instance Exemplar on which to base Managed VMs"
     gcloud compute instances create $BASENAME-exemplar \
     --zone $ZONE --machine-type "n1-standard-1" \
     --image-project "debian-cloud" --image-family "debian-10" --boot-disk-size "200" \
