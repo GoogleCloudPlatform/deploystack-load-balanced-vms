@@ -24,6 +24,12 @@ get_project_id PROJECT
 ZONE=us-central1-a
 SIZE=3
 
+if  [[ "$PROJECT" = "" ]]
+then
+    handleNoProject
+fi
+
+
 # Collect parameters here. Each of these allows a default, and a value to be
 # set via command line invocation. Makes it much easy to troubleshoot this.
 collectParamters PROJECT "$1" "the id of the Google Cloud Project" "$PROJECT" 

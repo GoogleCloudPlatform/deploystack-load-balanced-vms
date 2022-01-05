@@ -103,6 +103,28 @@ function collectAddressInfo(){
     eval $__resultvar="'$VALUE'"
 }
 
+function handleNoProject(){
+    local ANSWER
+    local PROPOSED_PROJECT_ID
+    local BA
+
+    printf "Do you want to create a new project to use with this app: Y or N\n"
+    read ANSWER
+
+    if  [[ "$answer" != "Y" ]]
+    then
+        return 1     
+    fi
+
+    printf "Please enter a project name:\n"
+    read PROPOSED_PROJECT_ID
+
+    BA=$(gcloud beta billing accounts list --format="value(ACCOUNT_ID)" | xargs)
+    gcloud projects create $PROPOSED_PROJECT_ID --set-as-default
+    gcloud beta billing projects link $PROPOSED_PROJECT_ID --billing-account=$BA    
+
+}
+
 function section_open(){
       section_description=$1
       printf "$DIVIDER"
