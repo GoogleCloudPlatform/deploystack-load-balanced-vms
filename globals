@@ -111,12 +111,13 @@ function handleNoProject(){
     printf "Do you want to create a new project to use with this app: Y or N\n"
     read ANSWER
 
-    if  [[ "$answer" != "Y" ]]
+    if  [[ "$ANSWER" != "Y" ]]
     then
+        printf "Skipping creating a new project...\n"
         return 1     
     fi
 
-    printf "Please enter a project name:\n"
+    printf "Please enter a new project name to create:\n"
     read PROPOSED_PROJECT_ID
 
     BA=$(gcloud beta billing accounts list --format="value(ACCOUNT_ID)" | xargs)
