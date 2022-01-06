@@ -3,8 +3,8 @@
 [44mBASICLB INSTALL                                                                 [0m
 [44m[1;34m--------------------------------------------------------------------------------[0m
 
-Before installation, create a new Google Cloud Project in which to run the 
-basiclb architecture. 
+Before installation, You may need to create a new Google Cloud Project in 
+which to run the basiclb architecture. 
 
 [4mhttps://console.cloud.google.com/projectcreate[0m
 

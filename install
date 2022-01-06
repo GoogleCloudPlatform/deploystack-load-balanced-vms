@@ -27,12 +27,15 @@ SIZE=3
 if  [[ "$PROJECT" = "" ]]
 then
     handleNoProject
+    get_project_id PROJECT
+else
+    collectParamters PROJECT "$1" "the id of the Google Cloud Project" "$PROJECT" 
 fi
 
 
 # Collect parameters here. Each of these allows a default, and a value to be
 # set via command line invocation. Makes it much easy to troubleshoot this.
-collectParamters PROJECT "$1" "the id of the Google Cloud Project" "$PROJECT" 
+
 collectParamters ZONE "$2" "the geographical zone for the VMs" "$ZONE" 
 collectParamters SIZE "$3" "the number of VMs to populate the Managed Instance Group" "$SIZE" 
 
@@ -49,11 +52,9 @@ printf "${BCYAN}Project Details${NC} \n"
 printf "Project ID:         $PROJECT \n"
 printf "Project Number:     $PROJECTNUMBER \n"
 
-
 section_open "Enabling services in your GCP project"
     gcloud services enable compute.googleapis.com 
 section_close
-
 
 section_open "Create Instance Exemplar on which to base Managed VMs"
     gcloud compute instances create $BASENAME-exemplar \

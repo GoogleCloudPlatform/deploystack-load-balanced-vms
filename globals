@@ -107,22 +107,31 @@ function handleNoProject(){
     local ANSWER
     local PROPOSED_PROJECT_ID
     local BA
+    local SUCCESS=false
 
-    printf "Do you want to create a new project to use with this app: Y or N\n"
+    printf "Do you want to create a new project to use with this app (default ${CYAN}Y$NC): Y or N\n"
     read ANSWER
 
-    if  [[ "$ANSWER" != "Y" ]]
+    if  [[ "$ANSWER" == "N" ]] || [[ "$ANSWER" == "n" ]]
     then
         printf "Skipping creating a new project...\n"
         return 1     
     fi
-
-    printf "Please enter a new project name to create:\n"
-    read PROPOSED_PROJECT_ID
+    
+    while [ $SUCCESS != true ]
+    do
+        SUCCESS=true
+        printf "${BCYAN}Please enter a new project name to create: ${NC}\n"
+        read PROPOSED_PROJECT_ID
+        gcloud projects create $PROPOSED_PROJECT_ID --set-as-default  || SUCCESS=false printf "$ONRED TRY AGAIN $NC\n"
+        gcloud config set project ${PROPOSED_PROJECT_ID} || SUCCESS=false
+    done
 
     BA=$(gcloud beta billing accounts list --format="value(ACCOUNT_ID)" | xargs)
-    gcloud projects create $PROPOSED_PROJECT_ID --set-as-default
-    gcloud beta billing projects link $PROPOSED_PROJECT_ID --billing-account=$BA    
+    gcloud beta billing projects link $PROPOSED_PROJECT_ID --billing-account=$BA
+    printf "\n$DIVIDER" 
+    printf "Project ${CYAN}${PROPOSED_PROJECT_ID}$NC has been created and billing enabled.\n"   
+    printf "$DIVIDER\n"
 
 }
 
