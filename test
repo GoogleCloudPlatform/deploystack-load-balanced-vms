@@ -2,13 +2,14 @@
 # be happy you did 
 source globals
 get_project_id PROJECT
+REGION=us-central1
 ZONE=us-central1-a
 BASENAME=basiclb
 SIZE=3
 
 gcloud config set project ${PROJECT}
 
-./install $PROJECT $ZONE $SIZE
+./install $PROJECT $REGION $ZONE $SIZE
 
 section_open "Test Managed Instance Group"
     evalTest 'gcloud compute instance-groups managed describe $BASENAME-mig --zone $ZONE --format="value(name)"'  $BASENAME-mig

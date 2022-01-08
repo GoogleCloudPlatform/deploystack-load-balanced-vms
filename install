@@ -12,34 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 clear
-REGION=us-central1
 
 # Globals has a lot of helpful functions around display. 
 source globals
 
 print_title "BASICLB INSTALL" "This process will create an Instance Template, a Managed Instance Group, and Load Balancer to serve it" "5"
-
 BASENAME=basiclb
-get_project_id PROJECT
-ZONE=us-central1-a
 SIZE=3
 
-if  [[ "$PROJECT" = "" ]]
-then
-    handleNoProject
-    get_project_id PROJECT
-else
-    collectParamters PROJECT "$1" "the id of the Google Cloud Project" "$PROJECT" 
-fi
-
-
+handleProject PROJECT "$1"
 # Collect parameters here. Each of these allows a default, and a value to be
 # set via command line invocation. Makes it much easy to troubleshoot this.
+computeRegionPicker REGION "$2"
+computeZonePicker ZONE "$3" "$REGION"
+collectParamters SIZE "$4" "the number of VMs to populate the Managed Instance Group" "$SIZE" 
 
-collectParamters ZONE "$2" "the geographical zone for the VMs" "$ZONE" 
-collectParamters SIZE "$3" "the number of VMs to populate the Managed Instance Group" "$SIZE" 
-
-gcloud config set project ${PROJECT}
 
 
 # All of these require the project id to be set. 

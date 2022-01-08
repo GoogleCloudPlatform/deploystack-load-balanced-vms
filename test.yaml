@@ -17,7 +17,9 @@ steps:
   env:
     - COMMAND=cd workspace && ./test
     - ZONE=$_ZONE
+    - REGION=$_REGION
     - INSTANCE_ARGS=--scopes=https://www.googleapis.com/auth/compute,https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/servicecontrol
     - RETRIES=20
 substitutions:
   _ZONE: us-central1-a
+  _REGION: us-central1
