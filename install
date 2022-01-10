@@ -21,13 +21,18 @@ BASENAME=basiclb
 SIZE=3
 
 handleProject PROJECT "$1"
+
+# Doing this earlier than normal, as compute is needed to poll things like 
+# regions and zones. 
+section_open "Enabling services in your GCP project"
+    gcloud services enable compute.googleapis.com 
+section_close
+
 # Collect parameters here. Each of these allows a default, and a value to be
 # set via command line invocation. Makes it much easy to troubleshoot this.
 computeRegionPicker REGION "$2"
 computeZonePicker ZONE "$3" "$REGION"
 collectParamters SIZE "$4" "the number of VMs to populate the Managed Instance Group" "$SIZE" 
-
-
 
 # All of these require the project id to be set. 
 get_project_number  PROJECTNUMBER $PROJECT
@@ -38,10 +43,6 @@ get_compute_serviceaccount SACOMPUTE $PROJECTNUMBER
 printf "${BCYAN}Project Details${NC} \n"
 printf "Project ID:         $PROJECT \n"
 printf "Project Number:     $PROJECTNUMBER \n"
-
-section_open "Enabling services in your GCP project"
-    gcloud services enable compute.googleapis.com 
-section_close
 
 section_open "Create Instance Exemplar on which to base Managed VMs"
     gcloud compute instances create $BASENAME-exemplar \
@@ -60,17 +61,13 @@ section_open "Create Instance Exemplar on which to base Managed VMs"
     gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo chgrp root /var/www/html/index.html"
     gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo chown root /var/www/html/index.html"
     gcloud compute ssh $BASENAME-exemplar --zone $ZONE --command="sudo chmod +r /var/www/html/index.html"
- section_close
-
-
-
-
+section_close
 
 section_open "Create Disk Image for Instance Template"
     gcloud compute instances delete $BASENAME-exemplar --zone $ZONE -q
     gcloud compute images create $BASENAME-latest --family=$BASENAME \
     --source-disk=$BASENAME-exemplar --source-disk-zone=$ZONE
- section_close
+section_close
 
 section_open "Create Instance Template"
     gcloud compute instance-templates create $BASENAME-template \
@@ -126,17 +123,11 @@ section_open "Enabling HTTP"
     --ports=80
 section_close
 
-
-
 IP=$(gcloud compute addresses describe $BASENAME-ip --global --format="value(address)")
 
-
 section_open "Waiting for website to be serving http"
-await_command STATUS 5 60 "url200" $IP $IP
+    await_command STATUS 5 60 "url200" $IP $IP
 section_close
-
-
-
 
 # Give a success message. If you are spinning up something that is available at 
 # a url, make sure you print that url - ESPECIALLY if it is dynamically created 
