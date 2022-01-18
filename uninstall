@@ -12,32 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 clear
-REGION=us-central1
-
 source globals
 
 print_title "BASICLB UNINSTALL" "This process will delete all of the infrastructure you created with basiclb." "1"
 
-
-
 BASENAME=basiclb
 get_project_id PROJECT
-ZONE=us-central1-a
-SIZE=3
 
-# These usually match what you did in install, but sometimes, you don't need to 
-# match. I usually go for as little user input as needed. 
-collectParamters PROJECT "$1" "the id of the Google Cloud Project" "$PROJECT" 
-collectParamters ZONE "$2" "the geographical zone for the VMs" "$ZONE" 
+handleProject PROJECT "$1"
+computeRegionPicker REGION "$2" "COMPUTE"
+computeZonePicker ZONE "$3" "$REGION"
 
-
-gcloud config set project ${PROJECT}
-# All of these require the project id to be set. 
-get_project_number  PROJECTNUMBER $PROJECT
-
-printf "${BCYAN}Project Details${NC} \n"
-printf "Project ID:         $PROJECT \n"
-printf "Project Number:     $PROJECTNUMBER \n"
+projectDetails "
+Project ID:,$PROJECT
+Region:,$REGION
+Zone:,$ZONE
+"
 
 section_open "Deleting Load Balancer"
     gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q

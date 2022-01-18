@@ -30,19 +30,17 @@ section_close
 
 # Collect parameters here. Each of these allows a default, and a value to be
 # set via command line invocation. Makes it much easy to troubleshoot this.
-computeRegionPicker REGION "$2"
+computeRegionPicker REGION "$2" "COMPUTE"
 computeZonePicker ZONE "$3" "$REGION"
 collectParamters SIZE "$4" "the number of VMs to populate the Managed Instance Group" "$SIZE" 
 
-# All of these require the project id to be set. 
-get_project_number  PROJECTNUMBER $PROJECT
-get_build_serviceaccount SABUILD $PROJECTNUMBER
-get_compute_serviceaccount SACOMPUTE $PROJECTNUMBER
 
-# This is mostly for debugging, but I think it gives a nice user experience. 
-printf "${BCYAN}Project Details${NC} \n"
-printf "Project ID:         $PROJECT \n"
-printf "Project Number:     $PROJECTNUMBER \n"
+projectDetails "
+Project ID:,$PROJECT
+Region:,$REGION
+Zone:,$ZONE
+VM Count:, $SIZE
+"
 
 section_open "Create Instance Exemplar on which to base Managed VMs"
     gcloud compute instances create $BASENAME-exemplar \
@@ -134,6 +132,6 @@ section_close
 printf "$DIVIDER"
 printf "CONGRATS!!!!!!! \n"
 printf "You have configured a project, spun up architecture and deployed code.\n"
-printf "See your site at:\n"
-printf "${UCYAN}http://$IP${NC} \n"
+printf "See your site at:\n\n"
+printf "${UCYAN}http://$IP${NC} \n\n"
 printf "$DIVIDER"	
