@@ -20,7 +20,7 @@ steps:
     - REGION=$_REGION
     - INSTANCE_ARGS=--scopes=https://www.googleapis.com/auth/compute,https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/servicecontrol
     - RETRIES=20
-  timeout: 2400s  
+  timeout: 2200s  
 substitutions:
   _ZONE: us-central1-a
   _REGION: us-central1
