@@ -1,5 +1,12 @@
 # I think it's a good idea to test your scripts. It's kinda awkward but you'll 
 # be happy you did 
+
+sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+sudo apt-get update && sudo apt-get install terraform
+
+
 source globals
 get_project_id PROJECT
 get_project_number PROJECT_NUMBER $PROJECT
