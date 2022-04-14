@@ -15,6 +15,26 @@
 steps:
 - name: gcr.io/$PROJECT_ID/remote-builder
   env:
+    - COMMAND=sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+    - RETRIES=20
+  timeout: 2200s 
+- name: gcr.io/$PROJECT_ID/remote-builder
+  env:
+    - COMMAND=curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+    - RETRIES=20
+  timeout: 2200s
+- name: gcr.io/$PROJECT_ID/remote-builder
+  env:
+    - COMMAND=sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+    - RETRIES=20
+  timeout: 2200s    
+- name: gcr.io/$PROJECT_ID/remote-builder
+  env:
+    - COMMAND=sudo apt-get update && sudo apt-get install terraform
+    - RETRIES=20
+  timeout: 2200s    
+- name: gcr.io/$PROJECT_ID/remote-builder
+  env:
     - COMMAND=cd workspace && ./test
     - ZONE=$_ZONE
     - REGION=$_REGION
@@ -24,3 +44,6 @@ steps:
 substitutions:
   _ZONE: us-central1-a
   _REGION: us-central1
+
+
+  
