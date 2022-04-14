@@ -2,6 +2,7 @@
 # be happy you did 
 source globals
 get_project_id PROJECT
+get_project_number PROJECT_NUMBER $PROJECT
 REGION=us-central1
 ZONE=us-central1-a
 BASENAME=basiclb
@@ -9,7 +10,8 @@ SIZE=3
 
 gcloud config set project ${PROJECT}
 
-./install $PROJECT $REGION $ZONE $SIZE
+terraform init
+terraform apply -auto-approve -var project_id="${PROJECT}" -var project_number="${PROJECT_NUMBER}" -var region="${REGION}" -var zone="${ZONE}" -var basename="${BASENAME}" -var nodes="${SIZE}"
 
 section_open "Test Managed Instance Group"
     evalTest 'gcloud compute instance-groups managed describe $BASENAME-mig --zone $ZONE --format="value(name)"'  $BASENAME-mig
@@ -45,7 +47,7 @@ section_open "Test the IP Address exists"
     evalTest 'gcloud compute addresses describe $BASENAME-ip --global --format="value(name)"'  $BASENAME-ip
 section_close
 
-./uninstall $PROJECT $REGION $ZONE
+terraform destroy -auto-approve -var project_id="${BASENAME}" -var project_number="${PROJECT_NUMBER}" -var region="${REGION}" -var zone="${ZONE}" -var basename="${BASENAME}" -var nodes="${SIZE}"
 
 section_open "Test Managed Instance Group doesn't exist"
     evalTest 'gcloud compute instance-groups managed describe $BASENAME-mig --zone $ZONE --format="value(name)"'  "EXPECTERROR"
