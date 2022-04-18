@@ -13,6 +13,7 @@
 # limitations under the License.
 clear
 source globals
+OUTPUTFILE="uninstall.sh"
 
 print_title "BASICLB UNINSTALL" "This process will delete all of the infrastructure you created with basiclb." "1"
 
