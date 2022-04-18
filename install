@@ -15,6 +15,7 @@ clear
 
 # Globals has a lot of helpful functions around display. 
 source globals
+OUTPUTFILE="install.sh"
 
 print_title "BASICLB INSTALL" "This process will create an Instance Template, a Managed Instance Group, and Load Balancer to serve it" "5"
 BASENAME=basiclb
