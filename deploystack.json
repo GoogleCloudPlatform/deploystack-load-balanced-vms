@@ -1,5 +1,4 @@
 {	"title":"BASICLB",
-	"description": "This process will create an Instance Template, a Managed Instance Group, and Load Balancer to serve it",
 	"duration":5,
 	"collect_project":true,
 	"collect_project_number":true,
