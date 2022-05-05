@@ -18,11 +18,11 @@ below.
 
 Once this opens up, you can install by: 
 1. Create a Google Cloud Project
-1. Type `./install`
+1. Type `./deploystack install`
 
 ## Cleanup 
 To remove all billing components from the project
-1. Type `./uninstall`
+1. Type `./deploystack uninstall`
 
 
 This is not an official Google product.
