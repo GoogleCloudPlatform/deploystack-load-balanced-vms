@@ -1,7 +1,0 @@
-go mod init exec
-echo "" >> go.mod
-echo "replace github.com/tpryan/deploystack => /Users/tpryan/google/go/src/github.com/tpryan/deploystack" >> go.mod # TODO: Delete this
-go mod tidy
-go run main.go
-terraform init
-terraform apply -auto-approve -var-file=terraform.tfvars

@@ -12,7 +12,7 @@ func main() {
 	s := deploystack.NewStack()
 	s.ProcessFlags(f)
 
-	if err := s.ReadConfig("config.json", "description.txt"); err != nil {
+	if err := s.ReadConfig("deploystack.json", "deploystack.txt"); err != nil {
 		log.Fatalf("could not read config file: %s", err)
 	}
 
