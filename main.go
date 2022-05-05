@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/tpryan/deploystack"
+	"github.com/GoogleCloudPlatform/deploystack"
 )
 
 func main() {
