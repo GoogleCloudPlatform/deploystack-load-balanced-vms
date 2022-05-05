@@ -4,8 +4,8 @@ case $1 in
     go mod init exec
     go mod tidy
     go run main.go
-    # terraform init
-    # terraform apply -auto-approve -var-file=terraform.tfvars
+    terraform init
+    terraform apply -auto-approve -var-file=terraform.tfvars
     ;;
 
   "uninstall")
