@@ -13,14 +13,7 @@
 # limitations under the License.
 
 steps:
-- name: gcr.io/$PROJECT_ID/remote-builder
-  env:
-    - COMMAND=cd workspace && ./test
-    - ZONE=$_ZONE
-    - REGION=$_REGION
-    - INSTANCE_ARGS=--scopes=https://www.googleapis.com/auth/compute,https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/servicecontrol
-    - RETRIES=20
-timeout: 2200s  
-substitutions:
-  _ZONE: us-central1-a
-  _REGION: us-central1
+   - name: 'gcr.io/$PROJECT_ID/terraform-tester'
+     entrypoint: bash
+     args: [ './test' ]
+timeout: 2200s
