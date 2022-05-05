@@ -3,3 +3,6 @@
 errFile
 test2
 clean
+terraform.tfvars
+go.mod
+go.sum
