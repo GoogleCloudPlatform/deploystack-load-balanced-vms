@@ -46,16 +46,16 @@ function evalTest() {
 
     if [ ${#ERR} -gt 0 ]; then
         if [ "$expected" = "EXPECTERROR" ]; then
-            printf "Expected Error thrown \n"
+            printf "ok \n"
             return
         fi
 
-        printf "Halting - error: '$ERR'  \n"
+        printf "expecting no error, got error='$ERR'   \n"
         exit 1
     fi
 
     if [ "$got" != "$expected" ]; then
-        printf "Halting: '$got'  \n"
+        printf "expecting: '$expected' got: '$got'  \n"
         exit 1
     fi
 
