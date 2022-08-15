@@ -22,6 +22,7 @@ variable "nodes" {
   type = string
 }
 
+# TODO: Create Network and use it. (Policy often doesn't allow default network)
 locals {
   defaultnetwork = "projects/${var.project_id}/global/networks/default"
 }
