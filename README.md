@@ -1,4 +1,4 @@
-# Deploy Stack - BasicLB 
+# Deploy Stack - Load Balanced Vms (BasicLB) 
 
 This is a simple VM + Load balancer solution.  It spins up a Managed Instance
 Group of Compute Engine VMs fronted by a Google Cloud Load Balancer. It only 
