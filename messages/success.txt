@@ -1,10 +1,9 @@
 
 
 
-CONGRATS!!!!!!! 
-You have configured a project, spun up architecture, and deployed code.
-
-See your site at the ip address labled "endpoint" referenced above. It might 
-take a few minutes to be available, as all of the constiuent parts warm up.
+CONGRATS!!!!!!!  
+You have configured a project and created 
+1. A managed instance group of Compute Engine Servers
+2. A load balancer to serve from those servers
 
 

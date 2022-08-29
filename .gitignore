@@ -6,3 +6,6 @@ clean
 terraform.tfvars
 go.mod
 go.sum
+.terraform.lock.hcl
+.terraform*
+terraform.tfstate
