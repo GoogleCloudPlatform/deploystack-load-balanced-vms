@@ -1,0 +1,20 @@
+
+BASENAME=basiclb
+PROJECT=ds-tester-basiclb
+REGION=us-central1
+ZONE=us-central1-a
+
+gcloud config set project $PROJECT
+
+gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q --project=$PROJECT
+gcloud compute target-http-proxies delete $BASENAME-lb-proxy -q --project=$PROJECT
+gcloud compute url-maps delete $BASENAME-lb -q --project=$PROJECT
+gcloud compute backend-services delete $BASENAME-service --global -q --project=$PROJECT
+gcloud compute health-checks delete $BASENAME-health-chk -q --project=$PROJECT
+gcloud compute firewall-rules delete allow-health-check -q --project=$PROJECT
+gcloud compute addresses delete $BASENAME-ip -q --global --project=$PROJECT
+gcloud compute instance-groups managed delete $BASENAME-mig --zone $ZONE -q --project=$PROJECT
+gcloud compute instance-templates delete $BASENAME-template -q --project=$PROJECT
+gcloud compute images delete $BASENAME-latest -q --project=$PROJECT
+gcloud compute snapshots delete $BASENAME-snapshot -q
+gcloud compute instances delete $BASENAME-exemplar -q --project=$PROJECT --zone $ZONE -q

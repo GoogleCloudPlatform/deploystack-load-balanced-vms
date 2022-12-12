@@ -2,10 +2,10 @@
 .DS_Store
 errFile
 test2
-clean
 terraform.tfvars
 go.mod
 go.sum
 .terraform.lock.hcl
 .terraform*
 terraform.tfstate*
+tfdebug.log
