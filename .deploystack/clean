@@ -1,20 +1,102 @@
 
+# I think it's a good idea to test your scripts. It's kinda awkward but you'll 
+# be happy you did 
+
+
+# DON'T REMOVE FROM test script.
+CYAN='\033[0;36m'
+BCYAN='\033[1;36m'
+NC='\033[0m' # No Color
+DIVIDER="********************************************************************************\n"
+
+function get_project_id() {
+    local __resultvar=$1
+    VALUE=$(gcloud config get-value project | xargs)
+    eval $__resultvar="'$VALUE'"
+}
+
+function get_project_number() {
+    local __resultvar=$1
+    local PRO=$2
+    VALUE=$(gcloud projects list --filter="project_id=$PRO" --format="value(PROJECT_NUMBER)" | xargs)
+    eval $__resultvar="'$VALUE'"
+}
+
+# DISPLAY HELPERS
+function section_open() {
+    section_description=$1
+    printf "$DIVIDER"
+    printf "${CYAN}$section_description${NC} \n"
+    printf "$DIVIDER"
+}
+
+function section_close() {
+    printf "$DIVIDER"
+    printf "${CYAN}$section_description ${BCYAN}- done${NC}\n"
+    printf "\n\n"
+}
+
+function evalTest() {
+    local command=$1
+    local expected=$2
+
+    local ERR=""
+    got=$(eval $command 2>errFile)
+    ERR=$(<errFile)
+
+    if [ ${#ERR} -gt 0 ]; then
+        if [ "$expected" = "EXPECTERROR" ]; then
+            printf "Expected Error thrown \n"
+            return
+        fi
+
+        printf "Halting - error: '$ERR'  \n"
+        exit 1
+    fi
+
+    if [ "$got" != "$expected" ]; then
+        printf "Halting: '$got'  \n"
+        exit 1
+    fi
+
+    printf "$expected is ok\n"
+}
+
+# END DON'T REMOVE FROM test script.
+
+
+get_project_id PROJECT
+gcloud services enable cloudresourcemanager.googleapis.com --project=$PROJECT
+get_project_number PROJECT_NUMBER $PROJECT
 BASENAME=basiclb
 PROJECT=ds-tester-basiclb
 REGION=us-central1
 ZONE=us-central1-a
 
-gcloud config set project $PROJECT
 
-gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q --project=$PROJECT
-gcloud compute target-http-proxies delete $BASENAME-lb-proxy -q --project=$PROJECT
-gcloud compute url-maps delete $BASENAME-lb -q --project=$PROJECT
-gcloud compute backend-services delete $BASENAME-service --global -q --project=$PROJECT
-gcloud compute health-checks delete $BASENAME-health-chk -q --project=$PROJECT
-gcloud compute firewall-rules delete allow-health-check -q --project=$PROJECT
-gcloud compute addresses delete $BASENAME-ip -q --global --project=$PROJECT
-gcloud compute instance-groups managed delete $BASENAME-mig --zone $ZONE -q --project=$PROJECT
-gcloud compute instance-templates delete $BASENAME-template -q --project=$PROJECT
-gcloud compute images delete $BASENAME-latest -q --project=$PROJECT
-gcloud compute snapshots delete $BASENAME-snapshot -q
-gcloud compute instances delete $BASENAME-exemplar -q --project=$PROJECT --zone $ZONE -q
+section_open "Delete Load Balancing"
+    gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q --project=$PROJECT
+    gcloud compute target-http-proxies delete $BASENAME-lb-proxy -q --project=$PROJECT
+    gcloud compute url-maps delete $BASENAME-lb -q --project=$PROJECT
+    gcloud compute backend-services delete $BASENAME-service --global -q --project=$PROJECT
+    gcloud compute health-checks delete $BASENAME-health-chk -q --project=$PROJECT
+section_close
+
+section_open "Delete Networking"
+    gcloud compute firewall-rules delete allow-health-check -q --project=$PROJECT
+    gcloud compute addresses delete $BASENAME-ip -q --global --project=$PROJECT
+section_close
+
+
+section_open "Delete Managed Instance Group resources"
+    gcloud compute firewall-rules delete allow-health-check -q --project=$PROJECT
+    gcloud compute addresses delete $BASENAME-ip -q --global --project=$PROJECT
+    gcloud compute instance-groups managed delete $BASENAME-mig --zone $ZONE -q --project=$PROJECT
+    gcloud compute instance-templates delete $BASENAME-template -q --project=$PROJECT
+    gcloud compute images delete $BASENAME-latest -q --project=$PROJECT
+    gcloud compute snapshots delete $BASENAME-snapshot -q
+section_close
+
+section_open "Delete Exemplar"
+    gcloud compute instances delete $BASENAME-exemplar -q --project=$PROJECT --zone $ZONE -q
+section_close
