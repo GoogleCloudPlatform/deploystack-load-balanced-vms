@@ -1,26 +1,3 @@
-variable "project_id" {
-  type = string
-}
-
-variable "project_number" {
-  type = string
-}
-
-variable "region" {
-  type = string
-}
-
-variable "zone" {
-  type = string
-}
-
-variable "basename" {
-  type = string
-}
-
-variable "nodes" {
-  type = string
-}
 
 # TODO: Create Network and use it. (Policy often doesn't allow default network)
 locals {
@@ -75,7 +52,7 @@ resource "google_compute_instance" "exemplar" {
 }
 
 data "local_file" "index" {
-  filename = "${path.module}/code/index.html"
+  filename = "${path.module}/../code/index.html"
 }
 
 resource "time_sleep" "startup_completion" {
@@ -213,10 +190,4 @@ resource "google_compute_forwarding_rule" "google_compute_forwarding_rule" {
   port_range            = "80"
   target                = google_compute_target_http_proxy.default.id
   ip_address            = google_compute_global_address.default.id
-}
-
-# Waiting for website to be serving http
-output "endpoint" {
-  value       = google_compute_global_address.default.address
-  description = "The url of the front end which we want to surface to the user"
 }

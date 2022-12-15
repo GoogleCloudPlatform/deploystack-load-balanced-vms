@@ -1,4 +1,5 @@
 {	"title":"Load Balanced VMs (BASICLB)",
+	"name": "load-balanced-vms",
 	"duration":5,
 	"documentation_link": "https://cloud.google.com/shell/docs/cloud-shell-tutorials/deploystack/load-balanced-vms",
 	"collect_project":true,
