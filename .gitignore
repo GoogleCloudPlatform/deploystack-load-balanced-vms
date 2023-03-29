@@ -9,3 +9,4 @@ go.sum
 .terraform*
 terraform.tfstate*
 tfdebug.log
+debug.log
