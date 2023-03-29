@@ -1,7 +1,13 @@
 
-# TODO: Create Network and use it. (Policy often doesn't allow default network)
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+
 locals {
   defaultnetwork = "projects/${var.project_id}/global/networks/default"
+  exemplar_machine_type = "e2-medium"
+  node_machine_type     = "e2-micro"
 }
 
 # Enabling services in your GCP project
@@ -15,21 +21,33 @@ variable "gcp_service_list" {
 
 resource "google_project_service" "all" {
   for_each                   = toset(var.gcp_service_list)
-  project                    = var.project_number
+  project                    = data.google_project.project.number
   service                    = each.key
   disable_dependent_services = false
   disable_on_destroy         = false
 }
 
+resource "google_compute_network" "main" {
+  project = var.project_id
+  name = "${var.basename}-network"
+}
+
 # Create Instance Exemplar on which to base Managed VMs
 resource "google_compute_instance" "exemplar" {
   name         = "${var.basename}-exemplar"
-  machine_type = "n1-standard-1"
+  machine_type = local.exemplar_machine_type
   zone         = var.zone
   project      = var.project_id
 
   tags                    = ["http-server"]
-  metadata_startup_script = "apt-get update -y \n apt-get install nginx -y \n  printf '${data.local_file.index.content}'  | tee /var/www/html/index.html \n chgrp root /var/www/html/index.html \n chown root /var/www/html/index.html \n chmod +r /var/www/html/index.html"
+  metadata_startup_script = <<EOF
+apt-get update -y
+apt-get install nginx -y
+printf '${data.local_file.index.content}' | tee /var/www/html/index.html
+chgrp root /var/www/html/index.html
+chown root /var/www/html/index.html
+chmod +r /var/www/html/index.html
+EOF
 
   boot_disk {
     auto_delete = true
@@ -42,7 +60,7 @@ resource "google_compute_instance" "exemplar" {
   }
 
   network_interface {
-    network = "default"
+    network = google_compute_network.main.id
     access_config {
       // Ephemeral public IP
     }
@@ -88,7 +106,7 @@ resource "google_compute_instance_template" "default" {
   metadata_startup_script = "sed -i.bak \"s/{{NODENAME}}/$HOSTNAME/\" /var/www/html/index.html"
 
   instance_description = "BasicLB node"
-  machine_type         = "n1-standard-1"
+  machine_type         = local.node_machine_type
   can_ip_forward       = false
 
   // Create a new boot disk from an image
@@ -99,7 +117,7 @@ resource "google_compute_instance_template" "default" {
   }
 
   network_interface {
-    network = "default"
+    network = google_compute_network.main.id
   }
 
   depends_on = [google_compute_image.exemplar]
@@ -146,7 +164,7 @@ resource "google_compute_health_check" "http" {
 resource "google_compute_firewall" "allow-health-check" {
   project       = var.project_id
   name          = "allow-health-check"
-  network       = local.defaultnetwork
+  network       = google_compute_network.main.id
   source_ranges = ["130.211.0.0/22", "35.191.0.0/16"]
 
   allow {
