@@ -1,3 +1,4 @@
+#!/bin/bash
 # I think it's a good idea to test your scripts. It's kinda awkward but you'll 
 # be happy you did 
 
@@ -69,7 +70,7 @@ gcloud services enable cloudresourcemanager.googleapis.com --project=$PROJECT
 get_project_number PROJECT_NUMBER $PROJECT
 REGION=us-central1
 ZONE=us-central1-a
-BASENAME=basiclb
+BASENAME=load-balanced-vms
 terraformDIR=terraform
 SIZE=3
 
@@ -112,6 +113,7 @@ section_open "Test Load Balancer parts exist"
     evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-proxy  --global --format="value(name)"' $BASENAME-lb-proxy 
     evalTest 'gcloud compute url-maps describe $BASENAME-lb --global --format="value(name)"' $BASENAME-lb
     evalTest 'gcloud compute backend-services describe $BASENAME-service --global --format="value(name)"'  $BASENAME-service
+    evalTest 'gcloud compute health-ckecks describe $BASENAME-health-chk --global --format="value(name)"'  $BASENAME-health-chk
 section_close
 
 section_open "Test the IP Address exists"
@@ -119,7 +121,7 @@ section_open "Test the IP Address exists"
 section_close
 
 terraform -chdir="$terraformDIR" destroy -auto-approve \
-    -var project_id="${BASENAME}" \
+    -var project_id="${PROJECT}" \
     -var project_number="${PROJECT_NUMBER}" \
     -var region="${REGION}" \
     -var zone="${ZONE}" \
@@ -139,6 +141,7 @@ section_open "Test Disk Image doesn't exist"
 section_close
 
 section_open "Test Load Balancer parts dont exist"
+    evalTest 'gcloud compute health-ckecks describe $BASENAME-health-chk --global --format="value(name)"'   "EXPECTERROR"
     evalTest 'gcloud compute forwarding-rules describe  $BASENAME-http-lb-forwarding-rule --global --format="value(name)"'  "EXPECTERROR"
     evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-proxy  --global --format="value(name)"' "EXPECTERROR"
     evalTest 'gcloud compute url-maps describe $BASENAME-lb --global --format="value(name)"' "EXPECTERROR"

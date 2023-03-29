@@ -66,11 +66,10 @@ function evalTest() {
 
 
 get_project_id PROJECT
-gcloud services enable cloudresourcemanager.googleapis.com --project=$PROJECT
-get_project_number PROJECT_NUMBER $PROJECT
-BASENAME=basiclb
+gcloud services enable cloudresourcemanager.googleapis.com --project="$PROJECT"
+get_project_number PROJECT_NUMBER "$PROJECT"
+BASENAME=load-balanced-vms
 PROJECT=ds-tester-basiclb
-REGION=us-central1
 ZONE=us-central1-a
 
 
@@ -85,6 +84,7 @@ section_close
 section_open "Delete Networking"
     gcloud compute firewall-rules delete allow-health-check -q --project=$PROJECT
     gcloud compute addresses delete $BASENAME-ip -q --global --project=$PROJECT
+    gcloud compute networks delete $BASENAME-network -q --project=$PROJECT
 section_close
 
 
@@ -94,7 +94,8 @@ section_open "Delete Managed Instance Group resources"
     gcloud compute instance-groups managed delete $BASENAME-mig --zone $ZONE -q --project=$PROJECT
     gcloud compute instance-templates delete $BASENAME-template -q --project=$PROJECT
     gcloud compute images delete $BASENAME-latest -q --project=$PROJECT
-    gcloud compute snapshots delete $BASENAME-snapshot -q
+    gcloud compute snapshots delete $BASENAME-snapshot -q --project=$PROJECT
+    gcloud compute health-ckecks delete $BASENAME-health-chk -q --project=$PROJECT
 section_close
 
 section_open "Delete Exemplar"
