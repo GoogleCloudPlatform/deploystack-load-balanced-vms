@@ -4,7 +4,7 @@ endpoint=${endpoint/\"/}
 echo "Waiting for the client to be active"
 
 attempt_counter=0
-max_attempts=50
+max_attempts=70
 
 until $(curl --output /dev/null --silent --head --fail $endpoint); do
     if [ ${attempt_counter} -eq ${max_attempts} ];then
