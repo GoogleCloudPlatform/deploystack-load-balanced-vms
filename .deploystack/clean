@@ -1,8 +1,4 @@
-
-# I think it's a good idea to test your scripts. It's kinda awkward but you'll 
-# be happy you did 
-
-
+#!/bin/bash
 # DON'T REMOVE FROM test script.
 CYAN='\033[0;36m'
 BCYAN='\033[1;36m'
@@ -95,7 +91,7 @@ section_open "Delete Managed Instance Group resources"
     gcloud compute instance-templates delete $BASENAME-template -q --project=$PROJECT
     gcloud compute images delete $BASENAME-latest -q --project=$PROJECT
     gcloud compute snapshots delete $BASENAME-snapshot -q --project=$PROJECT
-    gcloud compute health-ckecks delete $BASENAME-health-chk -q --project=$PROJECT
+    gcloud compute health-checks delete $BASENAME-health-chk -q --project=$PROJECT
 section_close
 
 section_open "Delete Exemplar"

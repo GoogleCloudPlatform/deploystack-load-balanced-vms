@@ -32,6 +32,24 @@ resource "google_compute_network" "main" {
   name = "${var.basename}-network"
 }
 
+
+resource "google_compute_firewall" "private-allow-ssh" {
+  name    = "${var.basename}-allow-ssh"
+  project = var.project_id
+  network = google_compute_network.main.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+
+  target_tags = ["private-ssh"]
+}  
+
+
+
 # Create Instance Exemplar on which to base Managed VMs
 resource "google_compute_instance" "exemplar" {
   name         = "${var.basename}-exemplar"
@@ -39,21 +57,13 @@ resource "google_compute_instance" "exemplar" {
   zone         = var.zone
   project      = var.project_id
 
-  tags                    = ["http-server"]
-  metadata_startup_script = <<EOF
-apt-get update -y
-apt-get install nginx -y
-printf '${data.local_file.index.content}' | tee /var/www/html/index.html
-chgrp root /var/www/html/index.html
-chown root /var/www/html/index.html
-chmod +r /var/www/html/index.html
-EOF
-
+  tags                    = ["http-server", "private-ssh"]
+  metadata_startup_script = "apt-get update -y \n apt-get install nginx -y \n  printf '${data.local_file.index.content}'  | tee /var/www/html/index.html \n chgrp root /var/www/html/index.html \n chown root /var/www/html/index.html \n chmod +r /var/www/html/index.html"
   boot_disk {
     auto_delete = true
     device_name = "${var.basename}-exemplar"
     initialize_params {
-      image = "family/debian-10"
+      image = "family/ubuntu-1804-lts"
       size  = 200
       type  = "pd-standard"
     }
