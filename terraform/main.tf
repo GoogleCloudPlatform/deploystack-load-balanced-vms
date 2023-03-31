@@ -5,7 +5,6 @@ data "google_project" "project" {
 
 
 locals {
-  defaultnetwork = "projects/${var.project_id}/global/networks/default"
   exemplar_machine_type = "e2-medium"
   node_machine_type     = "e2-micro"
 }
@@ -47,6 +46,8 @@ resource "google_compute_firewall" "private-allow-ssh" {
 
   target_tags = ["private-ssh"]
 }  
+
+
 
 
 
@@ -133,6 +134,20 @@ resource "google_compute_instance_template" "default" {
   depends_on = [google_compute_image.exemplar]
 }
 
+resource "google_compute_health_check" "autohealing" {
+  project             = var.project_id
+  name                = "${var.basename}-autohealing-health-check"
+  check_interval_sec  = 5
+  timeout_sec         = 5
+  healthy_threshold   = 2
+  unhealthy_threshold = 10 # 50 seconds
+
+  http_health_check {
+    request_path = "/"
+    port         = "80"
+  }
+}
+
 # Create Managed Instance Group
 resource "google_compute_instance_group_manager" "default" {
   project            = var.project_id
@@ -168,6 +183,23 @@ resource "google_compute_health_check" "http" {
 
   tcp_health_check {
     port = "80"
+  }
+}
+
+resource "google_compute_autoscaler" "main" {
+  project = var.project_id
+  name    = "${var.basename}-autoscaler"
+  zone    = var.zone
+  target  = google_compute_instance_group_manager.default.id
+
+  autoscaling_policy {
+    max_replicas    = var.nodes * 3
+    min_replicas    = var.nodes
+    cooldown_period = 60
+
+    cpu_utilization {
+      target = 0.5
+    }
   }
 }
 

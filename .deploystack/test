@@ -62,6 +62,47 @@ function evalTest() {
 
     printf "$expected is ok\n"
 }
+
+
+function await_url() {
+    local __resultvar=$1
+    local DURATION=$2
+    local limit=$3
+    local TARGET=$4
+
+    COMMAND="curl --write-out '%{http_code}' --resolve $TARGET:80:$TARGET --silent --output /dev/null http://$TARGET"
+    MESSAGE="Checking if url is returning STATUS OK "
+    AWAITING=200
+    ERROR=false
+
+    i=0
+    while [ "$VALUE" != "$AWAITING" ]; do
+        i=$((i + 1))
+        if [ $i -eq 1 ]; then
+            printf "%s" "$MESSAGE"
+        fi
+
+        if [ "$i" -eq "$limit" ]; then
+            printf "Timed out \n"
+            printf "%s\n" "$COMMAND"
+            exit 1
+        fi
+
+        VALUE=$(eval "$COMMAND") || ERROR=true
+
+        if [ "$ERROR" != true ]; then
+            break
+        fi
+        printf "."
+        sleep "$DURATION"
+    done
+    printf "\n"
+    eval "$__resultvar"="'$VALUE'"
+}
+
+
+
+
 # END DON'T REMOVE FROM test script.
 
 
@@ -113,12 +154,21 @@ section_open "Test Load Balancer parts exist"
     evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-proxy  --global --format="value(name)"' $BASENAME-lb-proxy 
     evalTest 'gcloud compute url-maps describe $BASENAME-lb --global --format="value(name)"' $BASENAME-lb
     evalTest 'gcloud compute backend-services describe $BASENAME-service --global --format="value(name)"'  $BASENAME-service
-    evalTest 'gcloud compute health-ckecks describe $BASENAME-health-chk --global --format="value(name)"'  $BASENAME-health-chk
+    evalTest 'gcloud compute health-checks describe $BASENAME-health-chk --global --format="value(name)"'  $BASENAME-health-chk
 section_close
 
 section_open "Test the IP Address exists"
     evalTest 'gcloud compute addresses describe $BASENAME-ip --global --format="value(name)"'  $BASENAME-ip
 section_close
+
+ENDPOINT=$(terraform -chdir="$terraformDIR" output -raw endpoint)
+
+section_open "Test that the url is reachable"
+     await_url state 5 60 $ENDPOINT
+section_close
+
+
+
 
 terraform -chdir="$terraformDIR" destroy -auto-approve \
     -var project_id="${PROJECT}" \

@@ -92,6 +92,7 @@ section_open "Delete Managed Instance Group resources"
     gcloud compute images delete $BASENAME-latest -q --project=$PROJECT
     gcloud compute snapshots delete $BASENAME-snapshot -q --project=$PROJECT
     gcloud compute health-checks delete $BASENAME-health-chk -q --project=$PROJECT
+    gcloud compute health-checks delete $BASENAME-autohealing-health-check -q --project=$PROJECT
 section_close
 
 section_open "Delete Exemplar"
