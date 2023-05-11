@@ -245,7 +245,7 @@ resource "google_compute_forwarding_rule" "google_compute_forwarding_rule" {
   project               = var.project_id
   name                  = "${var.basename}-http-lb-forwarding-rule"
   provider              = google-beta
-  region                = "none"
+  region                = var.region
   load_balancing_scheme = "EXTERNAL"
   port_range            = "80"
   target                = google_compute_target_http_proxy.default.id
