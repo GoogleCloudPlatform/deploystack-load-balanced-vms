@@ -1,3 +1,4 @@
+#!/bin/bash
 endpoint=$(terraform output endpoint)  
 endpoint=${endpoint/\"/}
 endpoint=${endpoint/\"/}

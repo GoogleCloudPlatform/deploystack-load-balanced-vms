@@ -1,0 +1,13 @@
+version: "3"
+
+tasks:
+  clean:
+    desc: Removes all of the generated files
+    ignore_error: true
+    cmds:
+      - rm *.log
+      - rm -rf terraform/.terraform
+      - rm terraform/terraform.*
+      - rm terraform/.terraform.*
+      - rm errFile
+      - .deploystack/clean

@@ -1,7 +1,12 @@
 
-# TODO: Create Network and use it. (Policy often doesn't allow default network)
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+
 locals {
-  defaultnetwork = "projects/${var.project_id}/global/networks/default"
+  exemplar_machine_type = "e2-medium"
+  node_machine_type     = "e2-micro"
 }
 
 # Enabling services in your GCP project
@@ -15,34 +20,58 @@ variable "gcp_service_list" {
 
 resource "google_project_service" "all" {
   for_each                   = toset(var.gcp_service_list)
-  project                    = var.project_number
+  project                    = data.google_project.project.number
   service                    = each.key
   disable_dependent_services = false
   disable_on_destroy         = false
 }
 
+resource "google_compute_network" "main" {
+  project = var.project_id
+  name = "${var.basename}-network"
+}
+
+
+resource "google_compute_firewall" "private-allow-ssh" {
+  name    = "${var.basename}-allow-ssh"
+  project = var.project_id
+  network = google_compute_network.main.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+
+  target_tags = ["private-ssh"]
+}  
+
+
+
+
+
 # Create Instance Exemplar on which to base Managed VMs
 resource "google_compute_instance" "exemplar" {
   name         = "${var.basename}-exemplar"
-  machine_type = "n1-standard-1"
+  machine_type = local.exemplar_machine_type
   zone         = var.zone
   project      = var.project_id
 
-  tags                    = ["http-server"]
+  tags                    = ["http-server", "private-ssh"]
   metadata_startup_script = "apt-get update -y \n apt-get install nginx -y \n  printf '${data.local_file.index.content}'  | tee /var/www/html/index.html \n chgrp root /var/www/html/index.html \n chown root /var/www/html/index.html \n chmod +r /var/www/html/index.html"
-
   boot_disk {
     auto_delete = true
     device_name = "${var.basename}-exemplar"
     initialize_params {
-      image = "family/debian-10"
+      image = "family/ubuntu-1804-lts"
       size  = 200
       type  = "pd-standard"
     }
   }
 
   network_interface {
-    network = "default"
+    network = google_compute_network.main.id
     access_config {
       // Ephemeral public IP
     }
@@ -88,7 +117,7 @@ resource "google_compute_instance_template" "default" {
   metadata_startup_script = "sed -i.bak \"s/{{NODENAME}}/$HOSTNAME/\" /var/www/html/index.html"
 
   instance_description = "BasicLB node"
-  machine_type         = "n1-standard-1"
+  machine_type         = local.node_machine_type
   can_ip_forward       = false
 
   // Create a new boot disk from an image
@@ -99,10 +128,24 @@ resource "google_compute_instance_template" "default" {
   }
 
   network_interface {
-    network = "default"
+    network = google_compute_network.main.id
   }
 
   depends_on = [google_compute_image.exemplar]
+}
+
+resource "google_compute_health_check" "autohealing" {
+  project             = var.project_id
+  name                = "${var.basename}-autohealing-health-check"
+  check_interval_sec  = 5
+  timeout_sec         = 5
+  healthy_threshold   = 2
+  unhealthy_threshold = 10 # 50 seconds
+
+  http_health_check {
+    request_path = "/"
+    port         = "80"
+  }
 }
 
 # Create Managed Instance Group
@@ -143,10 +186,27 @@ resource "google_compute_health_check" "http" {
   }
 }
 
+resource "google_compute_autoscaler" "main" {
+  project = var.project_id
+  name    = "${var.basename}-autoscaler"
+  zone    = var.zone
+  target  = google_compute_instance_group_manager.default.id
+
+  autoscaling_policy {
+    max_replicas    = var.nodes * 3
+    min_replicas    = var.nodes
+    cooldown_period = 60
+
+    cpu_utilization {
+      target = 0.5
+    }
+  }
+}
+
 resource "google_compute_firewall" "allow-health-check" {
   project       = var.project_id
   name          = "allow-health-check"
-  network       = local.defaultnetwork
+  network       = google_compute_network.main.id
   source_ranges = ["130.211.0.0/22", "35.191.0.0/16"]
 
   allow {
@@ -185,7 +245,7 @@ resource "google_compute_forwarding_rule" "google_compute_forwarding_rule" {
   project               = var.project_id
   name                  = "${var.basename}-http-lb-forwarding-rule"
   provider              = google-beta
-  region                = "none"
+  region                = var.region
   load_balancing_scheme = "EXTERNAL"
   port_range            = "80"
   target                = google_compute_target_http_proxy.default.id
