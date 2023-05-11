@@ -69,6 +69,11 @@ PROJECT=ds-tester-basiclb
 ZONE=us-central1-a
 
 
+section_open "Delete Firewall rules"
+    gcloud compute firewall-rules delete $BASENAME-allow-ssh -q --project=$PROJECT
+    gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q --project=$PROJECT
+section_close
+
 section_open "Delete Load Balancing"
     gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q --project=$PROJECT
     gcloud compute target-http-proxies delete $BASENAME-lb-proxy -q --project=$PROJECT
