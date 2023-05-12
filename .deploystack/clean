@@ -67,22 +67,29 @@ get_project_number PROJECT_NUMBER "$PROJECT"
 BASENAME=load-balanced-vms
 PROJECT=ds-tester-basiclb
 ZONE=us-central1-a
+REGION=us-central1
 
 
 section_open "Delete Firewall rules"
+    gcloud compute firewall-rules delete $BASENAME-lb-hc-0 -q --project=$PROJECT
     gcloud compute firewall-rules delete $BASENAME-allow-ssh -q --project=$PROJECT
     gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q --project=$PROJECT
+    
 section_close
 
 section_open "Delete Load Balancing"
-    gcloud compute forwarding-rules delete $BASENAME-http-lb-forwarding-rule --global -q --project=$PROJECT
-    gcloud compute target-http-proxies delete $BASENAME-lb-proxy -q --project=$PROJECT
-    gcloud compute url-maps delete $BASENAME-lb -q --project=$PROJECT
-    gcloud compute backend-services delete $BASENAME-service --global -q --project=$PROJECT
+    gcloud compute target-pools delete $BASENAME-target-pool -q --project=$PROJECT --region=$REGION
+    gcloud compute forwarding-rules delete $BASENAME-lb --global -q --project=$PROJECT
+    gcloud compute target-http-proxies delete $BASENAME-lb-http-proxy -q --project=$PROJECT
+    gcloud compute url-maps delete $BASENAME-lb-url-map -q --project=$PROJECT
+    gcloud compute backend-services delete $BASENAME-lb-backend-default --global -q --project=$PROJECT
+    gcloud compute backend-services delete $BASENAME-target-pool --global -q --project=$PROJECT
     gcloud compute health-checks delete $BASENAME-health-chk -q --project=$PROJECT
 section_close
 
 section_open "Delete Networking"
+    gcloud compute networks subnets delete $BASENAME-subnet-01  -q --project=$PROJECT --region=$REGION
+    gcloud compute firewall-rules delete allow-health-check -q --project=$PROJECT
     gcloud compute firewall-rules delete allow-health-check -q --project=$PROJECT
     gcloud compute addresses delete $BASENAME-ip -q --global --project=$PROJECT
     gcloud compute networks delete $BASENAME-network -q --project=$PROJECT
@@ -98,8 +105,23 @@ section_open "Delete Managed Instance Group resources"
     gcloud compute snapshots delete $BASENAME-snapshot -q --project=$PROJECT
     gcloud compute health-checks delete $BASENAME-health-chk -q --project=$PROJECT
     gcloud compute health-checks delete $BASENAME-autohealing-health-check -q --project=$PROJECT
+    gcloud compute health-checks delete $BASENAME-lb-hc-default -q --project=$PROJECT
+section_close
+
+section_open "No really, Delete Networking"
+
+    gcloud compute firewall-rules delete $BASENAME-allow-healthchecks -q --project=$PROJECT
+    gcloud compute firewall-rules delete allow-health-check -q --project=$PROJECT
+    gcloud compute firewall-rules delete allow-health-check -q --project=$PROJECT
+    gcloud compute addresses delete $BASENAME-ip -q --global --project=$PROJECT
+    gcloud compute addresses delete $BASENAME-lb-address -q --global --project=$PROJECT
+    gcloud compute networks delete $BASENAME-network -q --project=$PROJECT
 section_close
 
 section_open "Delete Exemplar"
     gcloud compute instances delete $BASENAME-exemplar -q --project=$PROJECT --zone $ZONE -q
+section_close
+
+section_open "No really, Delete Networking"
+    gcloud compute networks delete $BASENAME-network -q --project=$PROJECT
 section_close

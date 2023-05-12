@@ -13,14 +13,14 @@ DIVIDER+="\n"
 function get_project_id() {
     local __resultvar=$1
     VALUE=$(gcloud config get-value project | xargs)
-    eval $__resultvar="'$VALUE'"
+    eval "$__resultvar"="'$VALUE'"
 }
 
 function get_project_number() {
     local __resultvar=$1
     local PRO=$2
     VALUE=$(gcloud projects list --filter="project_id=$PRO" --format="value(PROJECT_NUMBER)" | xargs)
-    eval $__resultvar="'$VALUE'"
+    eval "$__resultvar"="'$VALUE'"
 }
 
 # DISPLAY HELPERS
@@ -120,11 +120,10 @@ gcloud config set project ${PROJECT}
 terraform -chdir="$terraformDIR" init
 terraform -chdir="$terraformDIR" apply -auto-approve \
     -var project_id="${PROJECT}" \
-    -var project_number="${PROJECT_NUMBER}" \
     -var region="${REGION}" \
     -var zone="${ZONE}" \
-    -var basename="${BASENAME}" \
-    -var nodes="${SIZE}"
+    -var nodes="${SIZE}" \
+    -var deployment_name="$BASENAME"
 
 section_open "Test Managed Instance Group"
     evalTest 'gcloud compute instance-groups managed describe $BASENAME-mig --zone $ZONE --format="value(name)"'  $BASENAME-mig
@@ -150,15 +149,16 @@ section_open "Test Disk Image"
 section_close
 
 section_open "Test Load Balancer parts exist"
-    evalTest 'gcloud compute forwarding-rules describe  $BASENAME-http-lb-forwarding-rule --global --format="value(name)"'  $BASENAME-http-lb-forwarding-rule
-    evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-proxy  --global --format="value(name)"' $BASENAME-lb-proxy 
-    evalTest 'gcloud compute url-maps describe $BASENAME-lb --global --format="value(name)"' $BASENAME-lb
-    evalTest 'gcloud compute backend-services describe $BASENAME-service --global --format="value(name)"'  $BASENAME-service
-    evalTest 'gcloud compute health-checks describe $BASENAME-health-chk --global --format="value(name)"'  $BASENAME-health-chk
+    evalTest 'gcloud compute forwarding-rules describe  $BASENAME-lb --global --format="value(name)"'  $BASENAME-lb
+    evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-http-proxy --global --format="value(name)"' $BASENAME-lb-http-proxy 
+    evalTest 'gcloud compute url-maps describe $BASENAME-lb-url-map --global --format="value(name)"' $BASENAME-lb-url-map
+    evalTest 'gcloud compute backend-services describe $BASENAME-lb-backend-default --global --format="value(name)"'  $BASENAME-lb-backend-default
+    evalTest 'gcloud compute health-checks describe $BASENAME-lb-hc-default   --global --format="value(name)"'  $BASENAME-lb-hc-default  
+    evalTest 'gcloud compute health-checks describe $BASENAME-autohealing-health-check   --global --format="value(name)"'  $BASENAME-autohealing-health-check  
 section_close
 
 section_open "Test the IP Address exists"
-    evalTest 'gcloud compute addresses describe $BASENAME-ip --global --format="value(name)"'  $BASENAME-ip
+    evalTest 'gcloud compute addresses describe $BASENAME-lb-address --global --format="value(name)"'  $BASENAME-lb-address
 section_close
 
 ENDPOINT=$(terraform -chdir="$terraformDIR" output -raw endpoint)
@@ -169,13 +169,10 @@ section_close
 
 
 
-
 terraform -chdir="$terraformDIR" destroy -auto-approve \
     -var project_id="${PROJECT}" \
-    -var project_number="${PROJECT_NUMBER}" \
     -var region="${REGION}" \
     -var zone="${ZONE}" \
-    -var basename="${BASENAME}" \
     -var nodes="${SIZE}"
 
 section_open "Test Managed Instance Group doesn't exist"
@@ -191,15 +188,17 @@ section_open "Test Disk Image doesn't exist"
 section_close
 
 section_open "Test Load Balancer parts dont exist"
-    evalTest 'gcloud compute health-ckecks describe $BASENAME-health-chk --global --format="value(name)"'   "EXPECTERROR"
-    evalTest 'gcloud compute forwarding-rules describe  $BASENAME-http-lb-forwarding-rule --global --format="value(name)"'  "EXPECTERROR"
-    evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-proxy  --global --format="value(name)"' "EXPECTERROR"
-    evalTest 'gcloud compute url-maps describe $BASENAME-lb --global --format="value(name)"' "EXPECTERROR"
-    evalTest 'gcloud compute backend-services describe $BASENAME-service --global --format="value(name)"'  "EXPECTERROR"
+
+    evalTest 'gcloud compute forwarding-rules describe  $BASENAME-lb --global --format="value(name)"'  "EXPECTERROR"
+    evalTest 'gcloud compute target-http-proxies describe $BASENAME-lb-http-proxy --global --format="value(name)"' "EXPECTERROR"
+    evalTest 'gcloud compute url-maps describe $BASENAME-lb-url-map --global --format="value(name)"' "EXPECTERROR"
+    evalTest 'gcloud compute backend-services describe $BASENAME-lb-backend-default --global --format="value(name)"' "EXPECTERROR"
+    evalTest 'gcloud compute health-checks describe $BASENAME-lb-hc-default   --global --format="value(name)"'  "EXPECTERROR"
+    evalTest 'gcloud compute health-checks describe $BASENAME-autohealing-health-check   --global --format="value(name)"'  "EXPECTERROR"
 section_close
 
 section_open "Test the IP Address doesnt exists"
-    evalTest 'gcloud compute addresses describe $BASENAME-ip --global --format="value(name)"'  "EXPECTERROR"
+    evalTest 'gcloud compute addresses describe $BASENAME-lb-address --global --format="value(name)"'  "EXPECTERROR"
 section_close
 
 printf "$DIVIDER"
